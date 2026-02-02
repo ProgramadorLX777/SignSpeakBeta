@@ -1,0 +1,43 @@
+CAMBIOS A REALIZAR SEMANA 1 (05/01/2026):
+
+- Reconoce de igual manera con una mano
+- Reconoce una seña durante 4 segundos y se borra el mensaje en pantalla
+- Reconoce una seña diferente en 4 segundos
+
+08/01/2026:
+
+- Corregir ultima seña guardado para mostrar SEÑA INVALIDA y mejorar rapidez de seña 
+para que reconozca de forma más natural modificando el SEQ LEN = 30. 
+
+09/01/2026:
+
+- Corregir estabilidad y pausas entre logs de consola para precisión, y ajustar SEQ_LEN Y MIN_LEN
+y umbral de confianza
+
+31/01/2026:
+
+- Eliminar detalles como: "Detectando" y elementos innecesarios que confunden al usuario.
+
+AGREGAR FUTUROS ADICIONALES: 
+
+- Incorporar mini cuadro a la derecha para traducción de seña a texto
+- Incorporar módulo de elección para escribir en un cuadro de texto para posterior 
+conversión a señas con un avatar o manos virtuales.
+- Incorporar menú principal (TIPO TÓTEM) para selección de opción de parte
+
+02/02/2026:
+
+- IDEAS DE INCORPORACIÓN FUTURAS Y OBSERVACIONES TÉCNICAS:
+    - Cada modulo y servicio debe funcionar de manera independiente, no depender del otro
+    Ejemplo: El Reconocedor no debe depender del servicio de traducción a texto plano
+
+    - El traductor tendrá dos cuadros, uno en donde al base al reconocedor convierta las señas en tiempo real 
+    y en el otro cuadro dejar que el usuario escriba en texto plano y voz (A FUTURO) y luego
+    muestre un avatar virtual haciendo las señas mostradas en un monitor externo hacia el usuario.
+
+SEÑAS INVALIDAS:
+
+- SEÑAS INCOMPLETAS AL SALIRSE DEL CUADRO O QUEDAR PEGADO
+- MOSTRAR MUY ABAJO LAS manos
+- RASCARSE U OTRA ACCION 
+- SEÑAS MUY RAPIDAS Y SALIRSE O MUY DESPACIO
