@@ -41,3 +41,9 @@ SEÑAS INVALIDAS:
 - MOSTRAR MUY ABAJO LAS manos
 - RASCARSE U OTRA ACCION 
 - SEÑAS MUY RAPIDAS Y SALIRSE O MUY DESPACIO
+
+03/02/2026:
+
+- Se implemento el traductor con una ventana de opencv independiente
+solo falta corregir los FPS para que trabajen con hilos separados sin 
+afectar el rendimiento
