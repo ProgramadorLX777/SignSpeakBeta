@@ -47,3 +47,27 @@ SEÑAS INVALIDAS:
 - Se implemento el traductor con una ventana de opencv independiente
 solo falta corregir los FPS para que trabajen con hilos separados sin 
 afectar el rendimiento
+
+05/02/2026:
+
+- PLANES:
+    - El oyente ahora que ya existe un traductor, se agregará un campo de texto
+    en donde podrá escribir lo que desea comunicar a la persona sorda,
+    para luego realizar la conversión y mostrar (por el momento) un video grabado
+    en donde por segmentación semántica (define las señas recibidas en categorias)
+    pueda comunicar conceptos y no palabra por palabra. 
+    
+    Por ejemplo:
+
+        FRASE: "Buenos, dias, como estas? Necesito ayuda" 
+        CATEGORÍA: SALUDO, NECESIDAD
+
+    Con esto será más fácil y rápida acceder a la seña del video y se mostrará al usuario
+
+    - Además, se debe contemplar los dos procesos más grandes de este proyecto que son:
+
+        - CONVERSIÓN DE SEÑAS A TEXTO -> Se debe ajustar la gramática y todo lo relacionado para que el oyente entienda.
+        - CONVERSIÓN DE TEXTO A SEÑAS -> Se debe ajustar la categorización, la gramática y la obtención del video correcto.
+
+    Con todos estos arreglos, se logrará un MVP (Producto mínimo viable) y se podrá ajustar a otros contextos, 
+    como: Hospitales, Colegios, Servicios públicos y privados (SENADIS, ChileAtiende, Registro Civil...)

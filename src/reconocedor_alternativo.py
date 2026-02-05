@@ -6,6 +6,9 @@ import torch.nn as nn
 import joblib
 from collections import deque
 import time
+import os
+import unicodedata
+import re
 
 def iniciar(bus, traductor):
 
@@ -14,6 +17,8 @@ def iniciar(bus, traductor):
     # =========================
     MODEL_PATH = "models/modelo_cnn_lstm_bimanual.pth"
     LABELS_PATH = "models/labels_bimano.pkl"
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    VIDEOS_DIR = os.path.join(BASE_DIR, "videos", "lsch")
     SEQ_LEN = 50
     MIN_FRAMES = 15
     FEATURES = 126
@@ -26,7 +31,44 @@ def iniciar(bus, traductor):
     MENSAJE_ROJO = "= Confianza baja"
     MENSAJE_AMARILLO = "= Casi listo..."
     MENSAJE_VERDE = "= Excelente"
+    
+    # =========================
+    # DICCIONARIO DE SEÑAS DISPONIBLES
+    # =========================
+    SENIAS_DISPONIBLES = {
+        "bien": os.path.join(VIDEOS_DIR, "bien.mp4"),
+        "gracias": os.path.join(VIDEOS_DIR, "gracias.mp4"),
+        "felicidades": os.path.join(VIDEOS_DIR, "felicidades.mp4"),
+        "aplausos": os.path.join(VIDEOS_DIR, "aplausos.mp4"),
+    }
 
+    def normalizar_texto(texto):
+        # minusculas
+        texto = texto.lower()
+
+        # quitar tildes
+        texto = unicodedata.normalize('NFD', texto)
+        texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
+
+        # quitar signos
+        texto = re.sub(r'[^a-zñ\s]', '', texto)
+
+        # separar palabras
+        palabras = texto.split()
+
+        return palabras
+    
+    def texto_a_senias(texto):
+                palabras = normalizar_texto(texto)
+
+                rutas_videos = []
+
+                for palabra in palabras:
+                    if palabra in SENIAS_DISPONIBLES:
+                        rutas_videos.append(SENIAS_DISPONIBLES[palabra])
+
+                return rutas_videos 
+    
     # =========================
     # MEDIAPIPE
     # =========================
@@ -143,8 +185,52 @@ def iniciar(bus, traductor):
 
     color = (255, 255, 255)  # blanco por defecto
     mensaje_estado = ""
+    
+    texto_escrito = ""
+    modo_escritura = False
+    enter_bloqueado = False
+    modo_video = False
+    cola_videos = []
+    video_actual = None
+    cap_video = None
 
     while True:
+        
+        # =============================
+        # 🎬 MODO VIDEO (PRIORIDAD MÁXIMA)
+        # =============================
+        if modo_video:
+            if cap_video is None and cola_videos:
+                ruta = cola_videos.pop(0)
+                print("▶ Reproduciendo:", ruta)
+                cap_video = cv2.VideoCapture(ruta)
+
+            if cap_video is None:
+                modo_video = False
+                continue
+
+            ret_vid, frame_vid = cap_video.read()
+
+            if not ret_vid:
+                cap_video.release()
+                cap_video = None
+                if not cola_videos:
+                    modo_video = False
+                continue
+
+            frame_vid = cv2.resize(frame_vid, (ancho, alto))
+            cv2.imshow("Reconocedor Activo - Presione ESC para Salir!!", frame_vid)
+
+            # 🔑 ESTA LÍNEA ES LA DIFERENCIA ENTRE FUNCIONAR Y NO
+            tecla = cv2.waitKey(30) & 0xFF
+
+            if tecla == 27:  # ESC
+                cap_video.release()
+                cv2.destroyAllWindows()
+                break  # salir del programa completo
+
+            continue   # 🔴 IMPORTANTE: bloquea el reconocedor
+
         ret, frame = cap.read()
         if not ret:
             break
@@ -373,12 +459,72 @@ def iniciar(bus, traductor):
                 lineType=cv2.LINE_AA
             )    
 
+        # ===== CAJA DE TEXTO =====
+        alto, ancho, _ = frame.shape
+
+        # Fondo de la caja
+        cv2.rectangle(
+            frame,
+            (0, alto - 80),
+            (ancho, alto),
+            (30, 30, 30),
+            -1
+        )
+
+        # Texto guía
+        cv2.putText(
+            frame,
+            "Oyente escribe (- para activar):",
+            (10, alto - 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (180, 180, 180),
+            2
+        )
+
+        # Texto escrito
+        cv2.putText(
+            frame,
+            texto_escrito + ("|" if modo_escritura else ""),
+            (10, alto - 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (255, 255, 255),
+            2
+        )
+
         cv2.imshow("Reconocedor Activo - Presione ESC para Salir!!", frame)
         
         traductor.dibujar()
 
-        if cv2.waitKey(1) & 0xFF == 27:
+        key = cv2.waitKey(1) & 0xFF
+        
+        if key == 27:  # ESC
             break
+        
+        if key == ord('-'):
+            modo_escritura = not modo_escritura
+            
+        if modo_escritura:
+            if key == 8:  # BACKSPACE
+                texto_escrito = texto_escrito[:-1]
+
+            elif key == 13:
+                if texto_escrito.strip():
+                    videos = texto_a_senias(texto_escrito)
+                    print("Videos a mostrar:", videos)
+
+                    if videos:
+                        cola_videos = videos.copy()
+                        modo_video = True
+
+                    texto_escrito = ""
+
+            elif 32 <= key <= 126:
+                texto_escrito += chr(key)
+
+        '''if cv2.waitKey(1) & 0xFF == 27:
+            break'''
 
     cap.release()
     cv2.destroyAllWindows()
