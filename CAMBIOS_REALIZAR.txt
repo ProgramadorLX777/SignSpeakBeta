@@ -71,3 +71,30 @@ afectar el rendimiento
 
     Con todos estos arreglos, se logrará un MVP (Producto mínimo viable) y se podrá ajustar a otros contextos, 
     como: Hospitales, Colegios, Servicios públicos y privados (SENADIS, ChileAtiende, Registro Civil...)
+
+    10/02/2026:
+    MEJORAS DEL SISTEMA DETECTADAS:
+
+        1. Cuando no hay señas y se muestra un poco de la mano, reconoce de igual manera una seña, 
+        corregir con validaciones para que sea una seña y crear una clase de: "Seña inválida".
+
+        2. El texto del traductor se debe eliminar o hacerse un lado despues de que la persona sorda
+        haya recibido el mensaje, para así, mantener la comunicación bidireccional fluida.
+
+        3. Mejorar la UX/UI para cada módulo y dejarlo presentable.
+
+        4. Corregir los prints de consola para no colgar el sistema con validaciones de tiempo, para que no 
+        sea loco.
+
+        5. Corregir en el traductor que a la hora de activar el modo con la tecla - no se escriba, y Además
+        agregar validaciones de cuanto texto agregar y la Ñ y otros carácteres.
+
+        6. Agregar más señas como: 
+            - Números 1 - 10
+            - Abecedario dactilológico: A - Z
+            - Colores: Rojo, Azul, Amarillo
+            - Familia: Mamá, Papá, Abuelo, etc.
+
+        7. Dejar funcionando el "Reconocedor alternativo" sin necesidad de depender del: "reconocedor_traductor"
+
+        

@@ -504,6 +504,7 @@ def iniciar(bus, traductor):
         
         if key == ord('-'):
             modo_escritura = not modo_escritura
+            continue
             
         if modo_escritura:
             if key == 8:  # BACKSPACE
