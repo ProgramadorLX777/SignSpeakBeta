@@ -9,6 +9,10 @@ import time
 import os
 import unicodedata
 import re
+import matplotlib
+matplotlib.use('Agg')
+from collections import deque
+
 
 def iniciar(bus, traductor):
 
@@ -22,7 +26,8 @@ def iniciar(bus, traductor):
     SEQ_LEN = 50
     MIN_FRAMES = 15
     FEATURES = 126
-    UMBRAL_CONF = 0.70
+    UMBRAL_CONF = 0.75
+    UMBRAL_GAP = 0.20
     TIEMPO_MOSTRAR = 2.0  # segundos
 
     # =========================
@@ -180,6 +185,7 @@ def iniciar(bus, traductor):
 
     cap = cv2.VideoCapture(0)
     window = deque(maxlen=SEQ_LEN)
+    historial_preds = deque(maxlen=10)
 
     print("🎥 Reconocedor activado (Presione ESC para salir!!)")
 
@@ -193,6 +199,8 @@ def iniciar(bus, traductor):
     cola_videos = []
     video_actual = None
     cap_video = None
+    #historial_preds = deque(maxlen=10)
+
 
     while True:
         
@@ -297,34 +305,73 @@ def iniciar(bus, traductor):
             with torch.no_grad():
                 out = model(tensor)
                 probs = torch.softmax(out, dim=1)[0].cpu().numpy()
+                top2 = np.sort(probs)[-2:]
+                gap = top2[1] - top2[0]
 
             for i, p in enumerate(probs):
                 print(f"  {id_to_label[i]}: {p:.3f}")
 
             pred_id = int(np.argmax(probs))
             conf = probs[pred_id]
+            
+            # =========================
+            # RECHAZO INTELIGENTE
+            # =========================
+            top2 = np.sort(probs)[-2:]
+            gap = top2[1] - top2[0]
+
+            # 1. obtener predicción simple (como ya hacías)
+            if conf >= UMBRAL_CONF and gap >= UMBRAL_GAP:
+                pred = id_to_label[pred_id]
+            else:
+                pred = "NO_RECONOCIDO"
+
+            # 2. guardar en historial
+            historial_preds.append(pred)
+
+            # 3. verificar estabilidad (LOS ÚLTIMOS 5 IGUALES)
+            #if len(historial_preds) >= 5 and len(set(list(historial_preds)[-5:])) == 1:
+            
+            if len(historial_preds) >= 3 and len(set(list(historial_preds)[-3:])) == 1:    
+                if historial_preds[-1] != "NO_RECONOCIDO":
+                    resultado_final = historial_preds[-1]
+                else:
+                    resultado_final = "NO_RECONOCIDO"
+            else:
+                resultado_final = "NO_RECONOCIDO"
 
             print("➡ Prediccion:", id_to_label[pred_id], "Confianza:", conf)
 
-            if not bloqueado and conf >= UMBRAL_CONF:
-                ultimo_resultado = id_to_label[pred_id]
+            if not bloqueado:
+                ultimo_resultado = resultado_final
                 ultimo_tiempo = time.time()
                 tiempo_bloqueo = time.time()
                 bloqueado = True
                 window.clear()
-                
+
+            '''if not bloqueado and conf >= UMBRAL_CONF:
+                ultimo_resultado = id_to_label[pred_id]
+                ultimo_tiempo = time.time()
+                tiempo_bloqueo = time.time()
+                bloqueado = True
+                window.clear()'''                
             evento = {
                 "label": ultimo_resultado,
                 "conf": conf,
                 "time": time.time()
             }
 
-            bus.publicar("SENIA_DETECTADA", {
+            if resultado_final != "NO_RECONOCIDO":
+                bus.publicar("SENIA_DETECTADA", {
+                    "label": resultado_final,
+                    "confianza": conf
+                })
+
+            '''bus.publicar("SENIA_DETECTADA", {
                 "label": ultimo_resultado,
                 "confianza": conf
-            })
+            })'''
 
-                
             if bloqueado and sin_manos_frames > MAX_SIN_MANOS:
                 bloqueado = False
                 

@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 import joblib
 import random
 
-# CONFIGimport os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -14,7 +13,6 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 import joblib
 import random
 
-# CONFIG
 DATA_DIR = "data_cnn_lstm_bimano"
 MODELS_DIR = "models"
 MODEL_PATH = os.path.join(MODELS_DIR, "modelo_cnn_lstm_bimanual.pth")
