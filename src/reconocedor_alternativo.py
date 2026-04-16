@@ -13,7 +13,6 @@ import matplotlib
 matplotlib.use('Agg')
 from collections import deque
 
-
 def iniciar(bus, traductor):
 
     # =========================
@@ -186,6 +185,8 @@ def iniciar(bus, traductor):
     cap = cv2.VideoCapture(0)
     window = deque(maxlen=SEQ_LEN)
     historial_preds = deque(maxlen=10)
+    
+    tiempo_sin_manos = 0.0
 
     print("🎥 Reconocedor activado (Presione ESC para salir!!)")
 
@@ -200,7 +201,6 @@ def iniciar(bus, traductor):
     video_actual = None
     cap_video = None
     #historial_preds = deque(maxlen=10)
-
 
     while True:
         
@@ -273,14 +273,28 @@ def iniciar(bus, traductor):
         vec, manos = extraer_landmarks(result)
 
         # Si no hay manos → no acumulamos
-        if not manos:
+        '''if not manos:
             sin_manos_frames += 1
+            
             if sin_manos_frames > MAX_SIN_MANOS:
-                pass
+                bus.publicar("SENIA_LIMPIAR", {})
+                #pass
             #window.clear()
         else:
             sin_manos_frames = 0
-            window.append(vec)
+            window.append(vec)'''
+            
+        if not manos:
+            sin_manos_frames += 1
+
+            if sin_manos_frames == 1:
+                tiempo_sin_manos = time.time()
+
+            if time.time() - tiempo_sin_manos > 1.5:
+                bus.publicar("SENIA_LIMPIAR", {})
+        else:
+            sin_manos_frames = 0
+            window.append(vec)  # 🔥 ESTO ES CLAVE
 
         # CUANDO SE COMPLETA LA SECUENCIA
         detectando = False
@@ -366,11 +380,8 @@ def iniciar(bus, traductor):
                     "label": resultado_final,
                     "confianza": conf
                 })
-
-            '''bus.publicar("SENIA_DETECTADA", {
-                "label": ultimo_resultado,
-                "confianza": conf
-            })'''
+            '''else:
+                bus.publicar("SENIA_LIMPIAR", {})'''
 
             if bloqueado and sin_manos_frames > MAX_SIN_MANOS:
                 bloqueado = False

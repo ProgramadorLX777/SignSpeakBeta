@@ -1,6 +1,6 @@
 import mediapipe as mp
 import cv2
-from dibujo_landmarks import draw_hand_landmarks
+from others.dibujo_landmarks import draw_hand_landmarks
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands

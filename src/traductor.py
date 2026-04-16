@@ -2,6 +2,14 @@ import cv2
 import numpy as np
 
 class Traductor:
+    def limpiar(self, datos=None):
+        self.texto = ""
+        self.confianza = 0.0
+        
+        try:
+            cv2.destroyWindow("📝 Traductor")
+        except:
+            pass
     def __init__(self, bus):
         self.texto = ""
         self.confianza = 0.0
@@ -11,6 +19,7 @@ class Traductor:
         self.tiempo_limpiar = TIEMPO_LIMPIAR
 
         bus.suscribir("SENIA_DETECTADA", self.recibir)
+        bus.suscribir("SENIA_LIMPIAR", self.limpiar)
 
     def recibir(self, datos):
         nuevo_texto = datos["label"]
@@ -22,18 +31,10 @@ class Traductor:
             self.ultimo_tiempo = cv2.getTickCount() / cv2.getTickFrequency()
 
     def dibujar(self):
-        tiempo_actual = cv2.getTickCount() / cv2.getTickFrequency()
-
-        # limpiar si pasa el tiempo
-        if self.texto and (tiempo_actual - self.ultimo_tiempo > self.tiempo_limpiar):
-            self.texto = ""
-            self.confianza = 0.0
-            return
 
         if not self.texto:
-            return
-        
-        # Fondo blanco
+            return  # 🔴 IMPORTANTE: no dibuja nada
+
         frame = np.ones((200, 600, 3), dtype=np.uint8) * 255
 
         cv2.putText(
