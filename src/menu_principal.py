@@ -19,7 +19,7 @@ root.geometry("400x300")
 
 # Tamaño ventana
 ancho_ventana = 400
-alto_ventana = 350
+alto_ventana = 400
 
 # Tamaño pantalla
 ancho_pantalla = root.winfo_screenwidth()
@@ -91,6 +91,15 @@ btn_evaluador = tk.Button(
     command=lambda: ejecutar("evaluacion_modelo.py")
 )
 btn_evaluador.pack(pady=5)
+
+btn_backup_modelo = tk.Button(
+    root,
+    text="Crear Backup Modelo",
+    width=30,
+    height=2,
+    command=lambda: ejecutar("backup_modelo.py")
+)
+btn_backup_modelo.pack(pady=5)
 
 if __name__ == "__main__":
     root.mainloop()

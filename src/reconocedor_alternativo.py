@@ -23,10 +23,12 @@ def iniciar(bus, traductor):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     VIDEOS_DIR = os.path.join(BASE_DIR, "videos", "lsch")
     SEQ_LEN = 50
-    MIN_FRAMES = 15
+    
+    MIN_FRAMES = 20
     FEATURES = 126
-    UMBRAL_CONF = 0.75
-    UMBRAL_GAP = 0.20
+    # Mientras más arriba es mas preciso y mas abajo mas permisivo
+    UMBRAL_CONF = 0.80 
+    UMBRAL_GAP = 0.10
     TIEMPO_MOSTRAR = 2.0  # segundos
 
     # =========================
@@ -346,7 +348,7 @@ def iniciar(bus, traductor):
             # 3. verificar estabilidad (LOS ÚLTIMOS 5 IGUALES)
             #if len(historial_preds) >= 5 and len(set(list(historial_preds)[-5:])) == 1:
             
-            if len(historial_preds) >= 3 and len(set(list(historial_preds)[-3:])) == 1:    
+            if len(historial_preds) >= 3 and len(set(list(historial_preds)[-2:])) == 1:    
                 if historial_preds[-1] != "NO_RECONOCIDO":
                     resultado_final = historial_preds[-1]
                 else:
@@ -355,6 +357,13 @@ def iniciar(bus, traductor):
                 resultado_final = "NO_RECONOCIDO"
 
             print("➡ Prediccion:", id_to_label[pred_id], "Confianza:", conf)
+            
+            # 🔥 LOG DE PREDICCIONES (PARA ANÁLISIS)
+            etiqueta_real = "gracias"  # ⚠️ CAMBIA ESTO SEGÚN LA SEÑA QUE ESTÁS HACIENDO
+
+            with open("log_predicciones.csv", "a") as f:
+                correcto = int(resultado_final.lower() == etiqueta_real.lower())
+                f.write(f"{etiqueta_real},{resultado_final},{conf},{correcto}\n")
 
             if not bloqueado:
                 ultimo_resultado = resultado_final
