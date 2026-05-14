@@ -1,3 +1,4 @@
+import signal
 import tkinter as tk
 import subprocess
 import sys
@@ -102,4 +103,5 @@ btn_backup_modelo = tk.Button(
 btn_backup_modelo.pack(pady=5)
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     root.mainloop()

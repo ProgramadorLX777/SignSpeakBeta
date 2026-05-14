@@ -1,8 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import torch
-import torch.nn as nn
 import joblib
 from collections import deque
 import time
@@ -14,6 +12,9 @@ matplotlib.use('Agg')
 from collections import deque
 
 def iniciar(bus, traductor):
+
+    import torch
+    import torch.nn as nn
 
     # =========================
     # CONFIGURACIÓN
@@ -85,7 +86,7 @@ def iniciar(bus, traductor):
         static_image_mode=False,
         max_num_hands=2,
         min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
+        min_tracking_confidence=0.5 # ANTES ERA 0.5 EN TEMAS DE DETECCCIÓN
     )
 
     # =========================
@@ -185,6 +186,7 @@ def iniciar(bus, traductor):
     TIEMPO_BLOQUEO = 1.5
 
     cap = cv2.VideoCapture(0)
+    time.sleep(2)
     window = deque(maxlen=SEQ_LEN)
     historial_preds = deque(maxlen=10)
     
@@ -296,6 +298,24 @@ def iniciar(bus, traductor):
                 bus.publicar("SENIA_LIMPIAR", {})
         else:
             sin_manos_frames = 0
+            
+            # =========================
+            # 🔥 SUAVIZADO (SMOOTHING)
+            # =========================
+            if len(window) > 0:
+                alpha = 0.7
+                vec = alpha * window[-1] + (1 - alpha) * vec
+
+            # =========================
+            # 🚫 FILTRO DE SALTOS LOCOS
+            # =========================
+            if len(window) > 0:
+                diff = np.linalg.norm(vec - window[-1])
+
+                if diff > 1.5:  # puedes ajustar (1.0 - 2.0)
+                    print("⚠️ Frame inestable ignorado")
+                    continue
+            
             window.append(vec)  # 🔥 ESTO ES CLAVE
 
         # CUANDO SE COMPLETA LA SECUENCIA
@@ -596,3 +616,4 @@ def iniciar(bus, traductor):
 
     cap.release()
     cv2.destroyAllWindows()
+    time.sleep(1)
